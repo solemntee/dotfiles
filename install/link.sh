@@ -47,7 +47,7 @@ case "$(uname -s)" in
     echo "Linux note: keyd still needs manual copy to /etc/keyd/default.conf"
     ;;
   Darwin)
-    echo "macOS note: karabiner files are not linked yet; use $ROOT/mac/karabiner when ready."
+    echo "macOS note: import Karabiner rules from $ROOT/mac/karabiner when ready."
     ;;
   *)
     echo "Unknown platform. Only common links were created."

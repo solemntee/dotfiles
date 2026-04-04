@@ -6,7 +6,7 @@
 
 - 同步 Neovim、tmux、WezTerm、shell 配置
 - 保留 Linux 侧的 fcitx5 / keyd 配置
-- 保留 macOS 侧 Karabiner 占位目录
+- 保留 macOS 侧 Karabiner 配置目录
 - 提供基础安装脚本和软链接脚本
 
 ## 目录结构
@@ -117,9 +117,12 @@ cd ~/personal/dotfiles
 
 ### 4. macOS 额外处理
 
-- `mac/karabiner/` 目前是占位目录，后续可放 Karabiner 配置
+- `mac/karabiner/global-backspace.json` 可用于把 `Ctrl-h` 全局映射成退格
 - Clash、CCSwitch 等桌面应用暂时手动安装
-- macOS 输入法自动切换后续再单独补
+- Neovim 的 macOS 输入法自动切换当前默认使用 `macism`
+- `macism` 安装：`brew tap laishulu/homebrew && brew install macism`
+- `im-select` 安装：`brew tap daipeihust/tap && brew install im-select`
+- 如需固定插入模式输入法，可在 `common/nvim/lua/config/options.lua` 中设置 `vim.g.mac_insert_input_source`
 
 ## 字体
 
@@ -151,4 +154,4 @@ cd ~/personal/dotfiles
 后续如果你要把更多系统配置纳入仓库，可以继续补：
 
 - Ubuntu: `environment.d/fcitx5.conf`、`.xprofile`、`.xinputrc`
-- macOS: Karabiner JSON、输入法切换插件配置
+- macOS: 更多 Karabiner JSON、其他输入法切换配置

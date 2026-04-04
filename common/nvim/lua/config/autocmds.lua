@@ -135,3 +135,74 @@ if vim.fn.executable("fcitx5-remote") == 1 then
     callback = to_english,
   })
 end
+
+local mac_input_source_command = vim.g.mac_input_source_command
+
+if vim.fn.has("mac") == 1 and vim.g.mac_auto_switch_input_method ~= false and mac_input_source_command ~= nil and mac_input_source_command ~= "" then
+  local group = vim.api.nvim_create_augroup("local_im_select_mode_switch", { clear = true })
+  local normal_input_source = vim.g.mac_normal_input_source or "com.apple.keylayout.ABC"
+  local state = {
+    insert_input_source = vim.g.mac_insert_input_source or "",
+  }
+
+  local function current_input_source()
+    local result = vim.fn.system({ mac_input_source_command })
+    if vim.v.shell_error ~= 0 then
+      return nil
+    end
+
+    result = vim.trim(result)
+    if result == "" then
+      return nil
+    end
+
+    return result
+  end
+
+  local function switch_input_source(input_source)
+    if input_source == nil or input_source == "" then
+      return
+    end
+    vim.fn.system({ mac_input_source_command, input_source })
+  end
+
+  local function remember_insert_input_source()
+    local current = current_input_source()
+    if current ~= nil and current ~= normal_input_source then
+      state.insert_input_source = current
+    end
+  end
+
+  local function to_normal()
+    remember_insert_input_source()
+    switch_input_source(normal_input_source)
+  end
+
+  local function to_insert()
+    local target = state.insert_input_source
+    if target == nil or target == "" then
+      target = vim.g.mac_insert_input_source
+    end
+    switch_input_source(target)
+  end
+
+  local initial_input_source = current_input_source()
+  if initial_input_source ~= nil and initial_input_source ~= normal_input_source then
+    state.insert_input_source = initial_input_source
+  end
+
+  vim.api.nvim_create_autocmd("InsertEnter", {
+    group = group,
+    callback = to_insert,
+  })
+
+  vim.api.nvim_create_autocmd("InsertLeave", {
+    group = group,
+    callback = to_normal,
+  })
+
+  vim.api.nvim_create_autocmd("CmdlineEnter", {
+    group = group,
+    callback = to_normal,
+  })
+end

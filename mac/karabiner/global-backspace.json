@@ -1,0 +1,25 @@
+{
+  "title": "Global backspace remaps",
+  "rules": [
+    {
+      "description": "Change control-h to backspace globally",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "h",
+            "modifiers": {
+              "mandatory": ["control"],
+              "optional": ["any"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "delete_or_backspace"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
