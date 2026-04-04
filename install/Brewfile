@@ -1,0 +1,12 @@
+brew "fd"
+brew "fzf"
+brew "git"
+brew "lazygit"
+brew "mosh"
+brew "neovim"
+brew "pipx"
+brew "ripgrep"
+brew "tmux"
+brew "python"
+
+cask "wezterm"
