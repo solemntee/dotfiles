@@ -3,7 +3,31 @@
 -- Add any additional options here
 
 vim.opt.autoread = true
-if vim.fn.executable("xclip") == 1 then
+
+local is_remote = vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil
+
+if is_remote then
+  -- SSH/mosh: OSC 52 协议直接同步剪贴板到本地终端
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+    },
+  }
+  vim.opt.clipboard = "unnamedplus"
+
+  -- SSH 性能优化
+  vim.opt.timeoutlen = 2000
+  vim.opt.lazyredraw = true
+  vim.opt.updatetime = 500
+  vim.opt.synmaxcol = 200
+  vim.g.snacks_animate = false
+elseif vim.fn.executable("xclip") == 1 then
   vim.g.clipboard = {
     name = "xclip",
     copy = {
