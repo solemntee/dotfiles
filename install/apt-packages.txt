@@ -3,7 +3,6 @@ git
 curl
 wget
 tmux
-neovim
 mosh
 ripgrep
 fd-find
@@ -12,6 +11,7 @@ python3
 python3-venv
 pipx
 xclip
+fonts-noto-color-emoji
 
 # input method
 fcitx5

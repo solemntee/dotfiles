@@ -44,6 +44,8 @@ link_path "$ROOT/common/shell/.inputrc" "$HOME/.inputrc"
 case "$(uname -s)" in
   Linux)
     link_path "$ROOT/linux/fcitx5" "$HOME/.config/fcitx5"
+    link_path "$ROOT/linux/environment.d/fcitx5.conf" "$HOME/.config/environment.d/fcitx5.conf"
+    link_path "$ROOT/linux/autostart/org.fcitx.Fcitx5.desktop" "$HOME/.config/autostart/org.fcitx.Fcitx5.desktop"
     echo "Linux note: keyd still needs manual copy to /etc/keyd/default.conf"
     ;;
   Darwin)

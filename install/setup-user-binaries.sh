@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+NVIM_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.appimage"
+WEZTERM_VERSION="20240203-110809-5046fc22"
+WEZTERM_URL="https://github.com/wez/wezterm/releases/download/${WEZTERM_VERSION}/WezTerm-${WEZTERM_VERSION}-Ubuntu20.04.AppImage"
+SARASA_VERSION="1.0.37"
+SARASA_URL="https://github.com/be5invis/Sarasa-Gothic/releases/download/v${SARASA_VERSION}/Sarasa-TTC-${SARASA_VERSION}.zip"
+
+BIN_DIR="${HOME}/.local/bin"
+OPT_DIR="${HOME}/.local/opt"
+APP_DIR="${HOME}/.local/share/applications"
+FONT_DIR="${HOME}/.local/share/fonts/sarasa"
+TMP_DIR="${TMPDIR:-/tmp}/dotfiles-user-binaries"
+TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+
+backup_path() {
+  local target="$1"
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    mv "$target" "${target}.bak.${TIMESTAMP}"
+  fi
+}
+
+install_appimage() {
+  local name="$1"
+  local url="$2"
+  local appimage="$TMP_DIR/${name}.appimage"
+  local extract_dir="$TMP_DIR/${name}-extract"
+  local target_dir="$OPT_DIR/$name"
+
+  curl -fL "$url" -o "$appimage"
+  chmod +x "$appimage"
+
+  rm -rf "$extract_dir"
+  mkdir -p "$extract_dir"
+  (
+    cd "$extract_dir"
+    "$appimage" --appimage-extract >/dev/null
+  )
+
+  if [ -e "$target_dir" ] || [ -L "$target_dir" ]; then
+    backup_path "$target_dir"
+  fi
+  mv "$extract_dir/squashfs-root" "$target_dir"
+  ln -sfn "$target_dir/AppRun" "$BIN_DIR/$name"
+}
+
+mkdir -p "$BIN_DIR" "$OPT_DIR" "$APP_DIR" "$FONT_DIR" "$TMP_DIR"
+
+install_appimage "nvim" "$NVIM_URL"
+install_appimage "wezterm" "$WEZTERM_URL"
+
+ln -sfn "$OPT_DIR/wezterm/wezterm.desktop" "$APP_DIR/wezterm.desktop"
+if command -v update-desktop-database >/dev/null 2>&1; then
+  update-desktop-database "$APP_DIR" >/dev/null 2>&1 || true
+fi
+
+curl -fL "$SARASA_URL" -o "$TMP_DIR/Sarasa-TTC-${SARASA_VERSION}.zip"
+unzip -o "$TMP_DIR/Sarasa-TTC-${SARASA_VERSION}.zip" -d "$FONT_DIR" >/dev/null
+fc-cache -f "$FONT_DIR" >/dev/null
+
+echo "Installed user-space binaries:"
+echo "  - nvim -> $BIN_DIR/nvim"
+echo "  - wezterm -> $BIN_DIR/wezterm"
+echo "Installed user fonts:"
+echo "  - Sarasa Mono SC"

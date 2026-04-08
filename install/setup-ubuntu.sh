@@ -19,6 +19,11 @@ fi
 
 echo "Ubuntu base packages installed."
 echo "Next steps:"
-echo "  1. Install fonts: Sarasa Mono SC, Noto Color Emoji"
+echo "  1. Run: $ROOT/install/setup-user-binaries.sh"
 echo "  2. Run: $ROOT/install/link.sh"
-echo "  3. If needed, copy $ROOT/linux/keyd/default.conf to /etc/keyd/default.conf"
+echo "  3. On Ubuntu GNOME, keep only US in desktop input sources:"
+echo "     gsettings set org.gnome.desktop.input-sources sources \"[('xkb', 'us')]\""
+echo "     gsettings set org.gnome.desktop.input-sources mru-sources \"[('xkb', 'us')]\""
+echo "  4. On Ubuntu GNOME, mask the built-in ibus user service:"
+echo "     systemctl --user mask --now org.freedesktop.IBus.session.GNOME.service"
+echo "  5. If needed, copy $ROOT/linux/keyd/default.conf to /etc/keyd/default.conf"

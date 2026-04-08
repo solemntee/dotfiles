@@ -6,6 +6,8 @@
 
 - 同步 Neovim、tmux、WezTerm、shell 配置
 - 保留 Linux 侧的 fcitx5 / keyd 配置
+- Linux 输入法目标行为：`keyboard-us` + `shuangpin(Xiaohe)`，`[` / `]` 翻页
+- Linux 键位目标行为：`CapsLock -> Ctrl-Space`，用于切换 fcitx5 中英文
 - 保留 macOS 侧 Karabiner 配置目录
 - 提供基础安装脚本和软链接脚本
 
@@ -20,6 +22,8 @@
     shell/
     scripts/
   linux/
+    autostart/
+    environment.d/
     fcitx5/
     keyd/
   mac/
@@ -54,8 +58,9 @@ git commit -m "init dotfiles"
 3. 同步本仓库到 `~/personal/dotfiles`
 4. 安装字体：`Sarasa Mono SC`、`Noto Color Emoji`
 5. 运行平台安装脚本
-6. 运行软链接脚本
-7. 再补手动安装的桌面应用（如 Clash GUI、CCSwitch 等）
+6. 安装用户态二进制（Neovim、WezTerm、Sarasa Mono SC）
+7. 运行软链接脚本
+8. 再补手动安装的桌面应用（如 Clash GUI、CCSwitch 等）
 
 ## Ubuntu 安装
 
@@ -73,18 +78,38 @@ cd ~/personal/dotfiles
 ./install/setup-ubuntu.sh
 ```
 
-### 3. 链接配置
+### 3. 安装用户态二进制
+
+```bash
+./install/setup-user-binaries.sh
+```
+
+- 安装新版 `nvim` 到 `~/.local/bin/nvim`
+- 安装 `wezterm` 到 `~/.local/bin/wezterm`
+- 安装 `Sarasa Mono SC` 到 `~/.local/share/fonts/sarasa`
+
+### 4. 链接配置
 
 ```bash
 ./install/link.sh
 ```
 
-### 4. Linux 额外处理
+### 5. Linux 额外处理
 
 - `linux/fcitx5/` 会被链接到 `~/.config/fcitx5`
+- `linux/environment.d/fcitx5.conf` 会被链接到 `~/.config/environment.d/fcitx5.conf`
+- `linux/autostart/org.fcitx.Fcitx5.desktop` 会被链接到 `~/.config/autostart/org.fcitx.Fcitx5.desktop`
+- 当前 fcitx5 约定为：`keyboard-us` + `shuangpin(Xiaohe)`，并使用 `[` / `]` 进行候选翻页
+- 如果是 Ubuntu GNOME，桌面输入源应只保留 `US`，不要再保留 `Chinese (Intelligent Pinyin)` 之类的 ibus 输入源
+- 如果是 Ubuntu GNOME，建议屏蔽 GNOME 自带的 `ibus` 用户服务，避免重启后把 `fcitx5` 顶掉
 - `linux/keyd/default.conf` 需要手动复制到 `/etc/keyd/default.conf`
+- `linux/keyd/default.conf` 当前把 `CapsLock` 映射成 `Ctrl-Space`，用于切换 fcitx5 中英文
+- 改完 `environment.d` 后需要重新登录图形会话，或至少重启桌面会话，让输入法环境变量生效
 
 ```bash
+gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us')]"
+gsettings set org.gnome.desktop.input-sources mru-sources "[('xkb', 'us')]"
+systemctl --user mask --now org.freedesktop.IBus.session.GNOME.service
 sudo mkdir -p /etc/keyd
 sudo cp ~/personal/dotfiles/linux/keyd/default.conf /etc/keyd/default.conf
 sudo systemctl enable --now keyd
@@ -131,7 +156,10 @@ cd ~/personal/dotfiles
 - `Sarasa Mono SC`
 - `Noto Color Emoji`
 
-如果字体没装，WezTerm 仍然能启动，但显示效果会退化。
+Ubuntu 下：
+
+- `./install/setup-user-binaries.sh` 会安装 `Sarasa Mono SC`
+- `./install/setup-ubuntu.sh` 会安装 `Noto Color Emoji`
 
 ## 软链接说明
 
@@ -142,6 +170,8 @@ cd ~/personal/dotfiles
 - `common/wezterm/.wezterm.lua` -> `~/.wezterm.lua`
 - `common/shell/.inputrc` -> `~/.inputrc`
 - Linux 下额外链接 `linux/fcitx5` -> `~/.config/fcitx5`
+- Linux 下额外链接 `linux/environment.d/fcitx5.conf` -> `~/.config/environment.d/fcitx5.conf`
+- Linux 下额外链接 `linux/autostart/org.fcitx.Fcitx5.desktop` -> `~/.config/autostart/org.fcitx.Fcitx5.desktop`
 
 如果目标路径已存在，脚本会先备份成 `*.bak.<timestamp>` 再建立新链接。
 
@@ -153,5 +183,5 @@ cd ~/personal/dotfiles
 
 后续如果你要把更多系统配置纳入仓库，可以继续补：
 
-- Ubuntu: `environment.d/fcitx5.conf`、`.xprofile`、`.xinputrc`
+- Ubuntu: `.xprofile`、`.xinputrc`
 - macOS: 更多 Karabiner JSON、其他输入法切换配置
