@@ -56,11 +56,9 @@ git commit -m "init dotfiles"
 1. 先安装并配置 Clash，确认浏览器和终端代理可用
 2. 安装 Git
 3. 同步本仓库到 `~/personal/dotfiles`
-4. 安装字体：`Sarasa Mono SC`、`Noto Color Emoji`
-5. 运行平台安装脚本
-6. 安装用户态二进制（Neovim、WezTerm、Sarasa Mono SC）
-7. 运行软链接脚本
-8. 再补手动安装的桌面应用（如 Clash GUI、CCSwitch 等）
+4. 运行平台安装脚本
+5. 运行软链接脚本
+6. 再补手动安装的桌面应用（如 Clash GUI、CCSwitch 等）
 
 ## Ubuntu 安装
 
@@ -78,42 +76,38 @@ cd ~/personal/dotfiles
 ./install/setup-ubuntu.sh
 ```
 
-### 3. 安装用户态二进制
+这个脚本当前会自动完成：
 
-```bash
-./install/setup-user-binaries.sh
-```
-
+- 安装基础 apt 依赖
+- 安装 `keyd` 并写入 `/etc/keyd/default.conf`
 - 安装新版 `nvim` 到 `~/.local/bin/nvim`
 - 安装 `wezterm` 到 `~/.local/bin/wezterm`
 - 安装 `Sarasa Mono SC` 到 `~/.local/share/fonts/sarasa`
 
-### 4. 链接配置
+如需只装 apt 依赖，不装用户态二进制：
+
+```bash
+SKIP_USER_BINARIES=1 ./install/setup-ubuntu.sh
+```
+
+### 3. 链接配置
 
 ```bash
 ./install/link.sh
 ```
 
-### 5. Linux 额外处理
+### 4. Linux 额外处理
 
 - `linux/fcitx5/` 会被链接到 `~/.config/fcitx5`
 - `linux/environment.d/fcitx5.conf` 会被链接到 `~/.config/environment.d/fcitx5.conf`
 - `linux/autostart/org.fcitx.Fcitx5.desktop` 会被链接到 `~/.config/autostart/org.fcitx.Fcitx5.desktop`
 - 当前 fcitx5 约定为：`keyboard-us` + `shuangpin(Xiaohe)`，并使用 `[` / `]` 进行候选翻页
-- 如果是 Ubuntu GNOME，桌面输入源应只保留 `US`，不要再保留 `Chinese (Intelligent Pinyin)` 之类的 ibus 输入源
-- 如果是 Ubuntu GNOME，建议屏蔽 GNOME 自带的 `ibus` 用户服务，避免重启后把 `fcitx5` 顶掉
-- `linux/keyd/default.conf` 需要手动复制到 `/etc/keyd/default.conf`
+- 如果是 Ubuntu GNOME，`install/link.sh` 会尽量自动把桌面输入源收口为 `US` 并屏蔽 GNOME 自带的 `ibus` 用户服务
 - `linux/keyd/default.conf` 当前把 `CapsLock` 映射成 `Ctrl-Space`，用于切换 fcitx5 中英文
 - 改完 `environment.d` 后需要重新登录图形会话，或至少重启桌面会话，让输入法环境变量生效
 
 ```bash
-gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us')]"
-gsettings set org.gnome.desktop.input-sources mru-sources "[('xkb', 'us')]"
-systemctl --user mask --now org.freedesktop.IBus.session.GNOME.service
-sudo mkdir -p /etc/keyd
-sudo cp ~/personal/dotfiles/linux/keyd/default.conf /etc/keyd/default.conf
-sudo systemctl enable --now keyd
-sudo systemctl restart keyd
+./install/link.sh
 ```
 
 ## macOS 安装
@@ -158,7 +152,7 @@ cd ~/personal/dotfiles
 
 Ubuntu 下：
 
-- `./install/setup-user-binaries.sh` 会安装 `Sarasa Mono SC`
+- `./install/setup-ubuntu.sh` 会安装 `Sarasa Mono SC`
 - `./install/setup-ubuntu.sh` 会安装 `Noto Color Emoji`
 
 ## 软链接说明

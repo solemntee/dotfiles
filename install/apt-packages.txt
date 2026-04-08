@@ -12,6 +12,7 @@ python3-venv
 pipx
 xclip
 fonts-noto-color-emoji
+software-properties-common
 
 # input method
 fcitx5

@@ -8,22 +8,45 @@ if ! command -v apt-get >/dev/null 2>&1; then
   exit 1
 fi
 
+install_keyd() {
+  if apt-cache show keyd >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if ! command -v add-apt-repository >/dev/null 2>&1; then
+    echo "keyd note: add-apt-repository is unavailable; skipping keyd installation." >&2
+    return 1
+  fi
+
+  sudo add-apt-repository -y ppa:keyd-team/ppa
+  sudo apt-get update
+  apt-cache show keyd >/dev/null 2>&1
+}
+
 mapfile -t packages < <(grep -vE '^\s*(#|$)' "$ROOT/install/apt-packages.txt")
 
 sudo apt-get update
 sudo apt-get install -y "${packages[@]}"
+if install_keyd; then
+  sudo apt-get install -y keyd
+  sudo mkdir -p /etc/keyd
+  sudo cp "$ROOT/linux/keyd/default.conf" /etc/keyd/default.conf
+  sudo systemctl enable --now keyd
+  sudo systemctl restart keyd
+else
+  echo "keyd note: package unavailable; install it manually on this machine." >&2
+fi
 
 if command -v pipx >/dev/null 2>&1; then
   pipx ensurepath >/dev/null 2>&1 || true
 fi
 
-echo "Ubuntu base packages installed."
+if [ "${SKIP_USER_BINARIES:-0}" != "1" ]; then
+  "$ROOT/install/setup-user-binaries.sh"
+fi
+
+echo "Ubuntu setup completed."
 echo "Next steps:"
-echo "  1. Run: $ROOT/install/setup-user-binaries.sh"
-echo "  2. Run: $ROOT/install/link.sh"
-echo "  3. On Ubuntu GNOME, keep only US in desktop input sources:"
-echo "     gsettings set org.gnome.desktop.input-sources sources \"[('xkb', 'us')]\""
-echo "     gsettings set org.gnome.desktop.input-sources mru-sources \"[('xkb', 'us')]\""
-echo "  4. On Ubuntu GNOME, mask the built-in ibus user service:"
-echo "     systemctl --user mask --now org.freedesktop.IBus.session.GNOME.service"
-echo "  5. If needed, copy $ROOT/linux/keyd/default.conf to /etc/keyd/default.conf"
+echo "  1. Run: $ROOT/install/link.sh"
+echo "  2. Log out and back in if this is the first time enabling fcitx5 on this machine"
+echo "  3. Optional: rerun $ROOT/install/setup-user-binaries.sh after updating pinned binary versions"

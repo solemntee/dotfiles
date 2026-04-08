@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-NVIM_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.appimage"
+NVIM_VERSION="v0.12.1"
+NVIM_URL="https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.appimage"
 WEZTERM_VERSION="20240203-110809-5046fc22"
 WEZTERM_URL="https://github.com/wez/wezterm/releases/download/${WEZTERM_VERSION}/WezTerm-${WEZTERM_VERSION}-Ubuntu20.04.AppImage"
 SARASA_VERSION="1.0.37"
@@ -50,7 +51,19 @@ mkdir -p "$BIN_DIR" "$OPT_DIR" "$APP_DIR" "$FONT_DIR" "$TMP_DIR"
 install_appimage "nvim" "$NVIM_URL"
 install_appimage "wezterm" "$WEZTERM_URL"
 
-ln -sfn "$OPT_DIR/wezterm/wezterm.desktop" "$APP_DIR/wezterm.desktop"
+cat > "$APP_DIR/wezterm.desktop" <<EOF
+[Desktop Entry]
+Name=WezTerm
+Comment=Wez's Terminal Emulator
+Keywords=shell;prompt;command;commandline;cmd;
+Icon=$OPT_DIR/wezterm/usr/share/icons/hicolor/128x128/apps/org.wezfurlong.wezterm.png
+StartupWMClass=org.wezfurlong.wezterm
+TryExec=$BIN_DIR/wezterm
+Exec=$BIN_DIR/wezterm start --cwd .
+Type=Application
+Categories=System;TerminalEmulator;Utility;
+Terminal=false
+EOF
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "$APP_DIR" >/dev/null 2>&1 || true
 fi

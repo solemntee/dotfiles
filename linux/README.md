@@ -11,8 +11,8 @@
 - `fcitx5/conf/pinyin.conf`: 已包含 `[` / `]` 翻页
 - `keyd/default.conf`: keyd 草稿整理后的默认配置
 - `keyd/default.conf`: 当前把 `CapsLock` 映射为 `Ctrl-Space`，用于切换 fcitx5 中英文
-- Ubuntu GNOME: 桌面输入源应只保留 `US`，避免同时保留 `ibus/libpinyin`
-- Ubuntu GNOME: 建议执行 `systemctl --user mask --now org.freedesktop.IBus.session.GNOME.service`
+- Ubuntu GNOME: `install/link.sh` 会尽量自动把桌面输入源收口为 `US`
+- Ubuntu GNOME: `install/link.sh` 会尽量自动屏蔽 `org.freedesktop.IBus.session.GNOME.service`
 
 后续可继续补：
 
