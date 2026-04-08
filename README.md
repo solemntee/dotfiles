@@ -82,6 +82,7 @@ cd ~/personal/dotfiles
 - 安装 `keyd` 并写入 `/etc/keyd/default.conf`
 - 安装新版 `nvim` 到 `~/.local/bin/nvim`
 - 安装 `wezterm` 到 `~/.local/bin/wezterm`
+- 安装 `lazygit` 到 `~/.local/bin/lazygit`
 - 安装 `Sarasa Mono SC` 到 `~/.local/share/fonts/sarasa`
 
 如需只装 apt 依赖，不装用户态二进制：

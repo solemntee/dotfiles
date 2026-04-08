@@ -5,6 +5,8 @@ NVIM_VERSION="v0.12.1"
 NVIM_URL="https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.appimage"
 WEZTERM_VERSION="20240203-110809-5046fc22"
 WEZTERM_URL="https://github.com/wez/wezterm/releases/download/${WEZTERM_VERSION}/WezTerm-${WEZTERM_VERSION}-Ubuntu20.04.AppImage"
+LAZYGIT_VERSION="0.61.0"
+LAZYGIT_URL="https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_linux_x86_64.tar.gz"
 SARASA_VERSION="1.0.37"
 SARASA_URL="https://github.com/be5invis/Sarasa-Gothic/releases/download/v${SARASA_VERSION}/Sarasa-TTC-${SARASA_VERSION}.zip"
 
@@ -46,10 +48,32 @@ install_appimage() {
   ln -sfn "$target_dir/AppRun" "$BIN_DIR/$name"
 }
 
+install_tarball_binary() {
+  local name="$1"
+  local url="$2"
+  local binary_name="$3"
+  local archive="$TMP_DIR/${name}.tar.gz"
+  local extract_dir="$TMP_DIR/${name}-extract"
+  local target_dir="$OPT_DIR/$name"
+
+  curl -fL "$url" -o "$archive"
+
+  rm -rf "$extract_dir"
+  mkdir -p "$extract_dir"
+  tar -xzf "$archive" -C "$extract_dir"
+
+  if [ -e "$target_dir" ] || [ -L "$target_dir" ]; then
+    backup_path "$target_dir"
+  fi
+  mv "$extract_dir" "$target_dir"
+  ln -sfn "$target_dir/$binary_name" "$BIN_DIR/$binary_name"
+}
+
 mkdir -p "$BIN_DIR" "$OPT_DIR" "$APP_DIR" "$FONT_DIR" "$TMP_DIR"
 
 install_appimage "nvim" "$NVIM_URL"
 install_appimage "wezterm" "$WEZTERM_URL"
+install_tarball_binary "lazygit" "$LAZYGIT_URL" "lazygit"
 
 cat > "$APP_DIR/wezterm.desktop" <<EOF
 [Desktop Entry]
@@ -75,5 +99,6 @@ fc-cache -f "$FONT_DIR" >/dev/null
 echo "Installed user-space binaries:"
 echo "  - nvim -> $BIN_DIR/nvim"
 echo "  - wezterm -> $BIN_DIR/wezterm"
+echo "  - lazygit -> $BIN_DIR/lazygit"
 echo "Installed user fonts:"
 echo "  - Sarasa Mono SC"
