@@ -1,7 +1,11 @@
+tap "laishulu/homebrew"
+
+brew "emacs"
 brew "fd"
 brew "fzf"
 brew "git"
 brew "lazygit"
+brew "macism"
 brew "mosh"
 brew "neovim"
 brew "node"

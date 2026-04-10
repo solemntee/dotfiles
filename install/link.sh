@@ -65,6 +65,7 @@ configure_linux_desktop() {
 }
 
 link_path "$ROOT/common/nvim" "$HOME/.config/nvim"
+link_path "$ROOT/common/emacs/init.el" "$HOME/.emacs.d/init.el"
 link_path "$ROOT/common/tmux/.tmux.conf" "$HOME/.tmux.conf"
 link_path "$ROOT/common/wezterm/.wezterm.lua" "$HOME/.wezterm.lua"
 link_path "$ROOT/common/shell/.inputrc" "$HOME/.inputrc"

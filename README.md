@@ -4,7 +4,7 @@
 
 ## 当前范围
 
-- 同步 Neovim、tmux、WezTerm、shell 配置
+- 同步 Emacs、Neovim、tmux、WezTerm、shell 配置
 - 保留 Linux 侧的 fcitx5 / keyd 配置
 - Linux 输入法目标行为：`keyboard-us` + `shuangpin(Xiaohe)`，`[` / `]` 翻页
 - Linux 键位目标行为：`CapsLock -> Ctrl-Space`，用于切换 fcitx5 中英文
@@ -16,6 +16,7 @@
 ```text
 ~/personal/dotfiles/
   common/
+    emacs/
     nvim/
     tmux/
     wezterm/
@@ -140,9 +141,13 @@ cd ~/personal/dotfiles
 - `mac/karabiner/global-backspace.json` 可用于把 `Ctrl-h` 全局映射成退格
 - Clash、CCSwitch 等桌面应用暂时手动安装
 - Neovim 的 macOS 输入法自动切换当前默认使用 `macism`
+- Emacs 的 macOS 输入法自动切换也复用 `macism`
 - `macism` 安装：`brew tap laishulu/homebrew && brew install macism`
 - `im-select` 安装：`brew tap daipeihust/tap && brew install im-select`
+- 默认英文输入法为 `com.apple.keylayout.ABC`
+- 默认中文输入法 ID 当前写死为 `com.apple.inputmethod.SCIM.Shuangpin`
 - 如需固定插入模式输入法，可在 `common/nvim/lua/config/options.lua` 中设置 `vim.g.mac_insert_input_source`
+- 如需修改 Emacs 的 macOS 输入法，可在 `common/emacs/init.el` 中调整 `my/mac-normal-input-source` 和 `my/mac-default-insert-input-source`
 
 ## 字体
 
@@ -161,6 +166,7 @@ Ubuntu 下：
 `install/link.sh` 会把以下路径链接到用户目录：
 
 - `common/nvim` -> `~/.config/nvim`
+- `common/emacs/init.el` -> `~/.emacs.d/init.el`
 - `common/tmux/.tmux.conf` -> `~/.tmux.conf`
 - `common/wezterm/.wezterm.lua` -> `~/.wezterm.lua`
 - `common/shell/.inputrc` -> `~/.inputrc`
@@ -175,6 +181,7 @@ Ubuntu 下：
 - 工作目录保持统一：`~/personal`
 - 项目仓库建议放在：`~/personal/project`
 - org 文件建议放在：`~/personal/org`
+- Emacs 的包目录、`custom.el`、历史文件等仍保留在各机器本地的 `~/.emacs.d/`，只同步 `init.el`
 
 后续如果你要把更多系统配置纳入仓库，可以继续补：
 
