@@ -31,7 +31,8 @@
                vertico
                orderless
                consult
-               marginalia))
+               marginalia
+               which-key))
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
@@ -100,6 +101,12 @@
          ("C-x b" . consult-buffer)
          ("C-c r" . consult-ripgrep)
          ("M-y" . consult-yank-pop)))
+
+(use-package which-key
+  :config
+  (which-key-mode 1)
+  (setq which-key-idle-delay 0.5
+        which-key-idle-secondary-delay 0.05))
 
 (use-package evil
   :config
@@ -268,40 +275,14 @@
     (kbd "gh") #'my/outline-previous-same-level
     (kbd "gu") #'my/outline-up-heading))
 
-(defun my/org-agenda-files ()
-  (when (file-directory-p "~/personal/org")
-    (directory-files-recursively "~/personal/org" "\\.org\\'")))
-
-(setq org-directory "~/personal/org"
-      org-agenda-files (my/org-agenda-files)
-      org-default-notes-file (expand-file-name "inbox.org" org-directory)
-      org-agenda-window-setup 'current-window
-      org-agenda-restore-windows-after-quit t
-      org-todo-keywords
-      '((sequence "TODO(t)" "NEXT(n)" "WAIT(w)" "BLOCKED(b)" "|"
-                  "DONE(d)" "CANCELLED(c)"))
-      org-log-done 'time
-      org-log-into-drawer "LOGBOOK"
-      org-startup-folded 'content
-      org-return-follows-link t
-      org-hide-emphasis-markers nil)
-
-(setq org-capture-templates
-      '(("t" "Task" entry
-         (file "~/personal/org/inbox.org")
-         "* TODO %?\n[%<%Y-%m-%d %a %H:%M>]\n")
-        ("r" "Roadmap" entry
-         (file "~/personal/org/roadmap.org")
-         "* TODO [#B] %?\n[%<%Y-%m-%d %a %H:%M>]\n")
-        ("p" "Project task" entry
-         (file "~/personal/org/projects/personal.org")
-         "* TODO %?\n[%<%Y-%m-%d %a %H:%M>]\n")))
-
-(add-hook 'org-mode-hook #'org-indent-mode)
 (add-hook 'markdown-mode-hook #'display-line-numbers-mode)
 
-(global-set-key (kbd "C-c a") #'org-agenda)
-(global-set-key (kbd "C-c c") #'org-capture)
+(load
+ (expand-file-name
+  "gtd/init.el"
+  (file-name-directory
+   (file-truename (or load-file-name buffer-file-name user-init-file))))
+ nil 'nomessage)
 
 (use-package markdown-mode
   :mode (("README\\.md\\'" . gfm-mode)
