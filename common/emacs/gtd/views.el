@@ -117,7 +117,7 @@
 
 (defun my/gtd-entry-review-group-p (group)
   "Return non-nil when current entry belongs to review GROUP."
-  (when-let ((value (org-entry-get (point) "REVIEW_GROUP")))
+  (when-let ((value (org-entry-get (point) "REVIEW")))
     (string= (downcase value) (symbol-name group))))
 
 (defun my/gtd-entry-review-item-p (group)
