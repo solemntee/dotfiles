@@ -11,7 +11,6 @@
          (mapcar #'expand-file-name
                  '("~/personal/org/inbox.org"
                    "~/personal/org/init.org"
-                   "~/personal/org/roadmap.org"
                    "~/personal/org/beorg-customize-init.org"
                    "~/personal/org/domains/emacs/migration.org"
                    "~/personal/org/domains/emacs/config-record.org"))))
@@ -45,12 +44,12 @@
       '(("t" "Task" entry
          (file "~/personal/org/inbox.org")
          "* TODO %?\n[%<%Y-%m-%d %a %H:%M>]\n")
-        ("r" "Roadmap" entry
-         (file "~/personal/org/roadmap.org")
-         "* TODO [#B] %?\n[%<%Y-%m-%d %a %H:%M>]\n")
         ("p" "Project task" entry
          (file+headline "~/personal/org/gtd.org" "Projects")
-         "* TODO %?\n[%<%Y-%m-%d %a %H:%M>]\n")))
+         "* TODO %?\n[%<%Y-%m-%d %a %H:%M>]\n")
+        ("b" "Timeblock" entry
+         (file+headline "~/personal/org/gtd.org" "Timeblocks")
+         "* %?\n[%<%Y-%m-%d %a %H:%M>]\n")))
 
 (add-hook 'org-mode-hook #'org-indent-mode)
 
