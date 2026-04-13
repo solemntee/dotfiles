@@ -53,12 +53,6 @@
   (when-let ((value (org-entry-get (point) property)))
     (org-time-string-to-absolute value)))
 
-(defun my/gtd-entry-in-file-p (filename)
-  "Return non-nil when current entry belongs to FILENAME in `org-directory'."
-  (when-let ((current-file (buffer-file-name)))
-    (string= (file-truename current-file)
-             (file-truename (expand-file-name filename org-directory)))))
-
 (defun my/gtd-entry-matches-scope-p (scope)
   "Return non-nil when current entry belongs to dashboard SCOPE."
   (pcase scope
@@ -121,30 +115,23 @@
                (my/gtd-entry-unscheduled-next-p))
     (my/gtd-skip-current-entry)))
 
-(defun my/gtd-entry-review-section-p (section)
-  "Return non-nil when current entry belongs to review SECTION in gtd.org."
-  (let ((path (org-get-outline-path t)))
-    (and (my/gtd-entry-in-file-p "gtd.org")
-         (>= (length path) 3)
-         (string= (nth 0 path) "Review")
-         (string= (nth 1 path)
-                  (pcase section
-                    ('soon "Soon")
-                    ('someday "Someday")
-                    (_ ""))))))
+(defun my/gtd-entry-review-group-p (group)
+  "Return non-nil when current entry belongs to review GROUP."
+  (when-let ((value (org-entry-get (point) "REVIEW_GROUP")))
+    (string= (downcase value) (symbol-name group))))
 
-(defun my/gtd-entry-review-item-p (section)
-  "Return non-nil when current entry should appear in review SECTION."
+(defun my/gtd-entry-review-item-p (group)
+  "Return non-nil when current entry should appear in review GROUP."
   (let ((state (org-get-todo-state)))
-    (and (my/gtd-entry-review-section-p section)
+    (and (my/gtd-entry-review-group-p group)
          (or (null state)
              (string= state "TODO"))
          (not (org-entry-get (point) "SCHEDULED"))
          (not (org-entry-get (point) "DEADLINE")))))
 
-(defun my/gtd-skip-non-review-entry (section)
-  "Skip current entry unless it should appear in review SECTION."
-  (unless (my/gtd-entry-review-item-p section)
+(defun my/gtd-skip-non-review-entry (group)
+  "Skip current entry unless it should appear in review GROUP."
+  (unless (my/gtd-entry-review-item-p group)
     (my/gtd-skip-current-entry)))
 
 (defun my/gtd-entry-matches-block-p (block)
@@ -258,13 +245,11 @@
           ((org-agenda-overriding-header "Projects")))
          ("v" "Review"
           ((search "."
-                   ((org-agenda-files '("~/personal/org/gtd.org"))
-                    (org-agenda-overriding-header "Review Soon")
+                   ((org-agenda-overriding-header "Review Soon")
                     (org-agenda-skip-function
                      (lambda () (my/gtd-skip-non-review-entry 'soon)))))
            (search "."
-                   ((org-agenda-files '("~/personal/org/gtd.org"))
-                    (org-agenda-overriding-header "Review Someday")
+                   ((org-agenda-overriding-header "Review Someday")
                     (org-agenda-skip-function
                      (lambda () (my/gtd-skip-non-review-entry 'someday)))))))
          ("n" "Next Actions"

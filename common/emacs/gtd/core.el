@@ -11,6 +11,7 @@
          (mapcar #'expand-file-name
                  '("~/personal/org/inbox.org"
                    "~/personal/org/init.org"
+                   "~/personal/org/roadmap.org"
                    "~/personal/org/beorg-customize-init.org"
                    "~/personal/org/domains/emacs/migration.org"
                    "~/personal/org/domains/emacs/config-record.org"))))
