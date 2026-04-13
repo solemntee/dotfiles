@@ -6,10 +6,10 @@
 (defun my/gtd-dashboard-scope-label (scope)
   "Return display label for dashboard SCOPE."
   (pcase scope
-    ('all "All")
     ('work "Work")
     ('non-work "Non-work")
-    (_ "All")))
+    ('all "All")
+    (_ "Work")))
 
 (defun my/gtd-dashboard-buffer-name (scope)
   "Return agenda buffer name for dashboard SCOPE."
@@ -18,27 +18,25 @@
 (defun my/gtd-dashboard-command-key (scope)
   "Return custom agenda command key for dashboard SCOPE."
   (pcase scope
-    ('all "g")
-    ('work "W")
-    ('non-work "R")
+    ('work "g")
+    ('non-work "r")
+    ('all "G")
     (_ "g")))
 
 (defun my/gtd-dashboard-next-scope (scope)
-  "Return the next dashboard scope after SCOPE."
-  (pcase scope
-    ('all 'work)
-    ('work 'non-work)
-    (_ 'all)))
+  "Return the next primary dashboard scope after SCOPE."
+  (if (eq scope 'non-work) 'work 'non-work))
 
 (defun my/gtd-dashboard-current-scope ()
   "Infer current dashboard scope from the active agenda buffer."
   (cond
+   ((string= (buffer-name) (my/gtd-dashboard-buffer-name 'all)) 'all)
    ((string= (buffer-name) (my/gtd-dashboard-buffer-name 'work)) 'work)
    ((string= (buffer-name) (my/gtd-dashboard-buffer-name 'non-work)) 'non-work)
-   (t 'all)))
+   (t 'work)))
 
 (defun my/gtd-dashboard-cycle-scope ()
-  "Cycle GTD dashboard scope between all, work and non-work."
+  "Toggle GTD dashboard scope between work and non-work."
   (interactive)
   (let* ((current (my/gtd-dashboard-current-scope))
          (next (my/gtd-dashboard-next-scope current)))
@@ -59,9 +57,33 @@
   "Return non-nil when current entry belongs to dashboard SCOPE."
   (pcase scope
     ('all t)
-    ('work (member "work" (org-get-tags-at)))
-    ('non-work (not (member "work" (org-get-tags-at))))
+    ('work (or (member "work" (org-get-tags-at))
+               (member "platform" (org-get-tags-at))))
+    ('non-work (and (not (member "work" (org-get-tags-at)))
+                    (not (member "platform" (org-get-tags-at)))))
     (_ t)))
+
+(defun my/gtd-entry-has-tag-p (tag)
+  "Return non-nil when current heading has TAG."
+  (member tag (org-get-tags-at)))
+
+(defun my/gtd-entry-focus-p ()
+  "Return non-nil when current heading is a focused work task."
+  (and (my/gtd-entry-has-tag-p "work")
+       (not (my/gtd-entry-has-tag-p "platform"))))
+
+(defun my/gtd-entry-platform-p ()
+  "Return non-nil when current heading is a platform-prep task."
+  (my/gtd-entry-has-tag-p "platform"))
+
+(defun my/gtd-entry-exposed-p ()
+  "Return non-nil when current heading is an exposed non-work task."
+  (my/gtd-entry-has-tag-p "exposed"))
+
+(defun my/gtd-entry-ordinary-non-work-p ()
+  "Return non-nil when current heading is a regular non-work task."
+  (and (my/gtd-entry-matches-scope-p 'non-work)
+       (not (my/gtd-entry-exposed-p))))
 
 (defun my/gtd-entry-planned-today-or-overdue-p ()
   "Return non-nil when current entry has due planning metadata."
@@ -70,6 +92,16 @@
         (deadline (my/gtd-entry-day "DEADLINE")))
     (or (and scheduled (<= scheduled today))
         (and deadline (<= deadline today)))))
+
+(defun my/gtd-entry-unscheduled-next-p ()
+  "Return non-nil when current entry is an unscheduled NEXT task."
+  (and (string= (org-get-todo-state) "NEXT")
+       (not (org-entry-get (point) "SCHEDULED"))))
+
+(defun my/gtd-entry-actionable-p ()
+  "Return non-nil when current entry should surface in an action block."
+  (or (my/gtd-entry-planned-today-or-overdue-p)
+      (my/gtd-entry-unscheduled-next-p)))
 
 (defun my/gtd-skip-non-planned-entry (scope)
   "Skip current entry unless it should appear in planned block for SCOPE."
@@ -80,31 +112,104 @@
 (defun my/gtd-skip-scheduled-next (scope)
   "Skip current NEXT entry unless it belongs in the unscheduled NEXT block for SCOPE."
   (unless (and (my/gtd-entry-matches-scope-p scope)
-               (not (org-entry-get (point) "SCHEDULED")))
+               (my/gtd-entry-unscheduled-next-p))
+    (my/gtd-skip-current-entry)))
+
+(defun my/gtd-entry-matches-block-p (block)
+  "Return non-nil when current entry belongs to dashboard BLOCK."
+  (pcase block
+    ('planned-work
+     (and (my/gtd-entry-focus-p)
+          (my/gtd-entry-planned-today-or-overdue-p)))
+    ('focus
+     (and (my/gtd-entry-focus-p)
+          (my/gtd-entry-unscheduled-next-p)))
+    ('platform
+     (and (my/gtd-entry-platform-p)
+          (my/gtd-entry-actionable-p)))
+    ('planned-non-work
+     (and (my/gtd-entry-ordinary-non-work-p)
+          (my/gtd-entry-planned-today-or-overdue-p)))
+    ('ordinary-non-work
+     (and (my/gtd-entry-ordinary-non-work-p)
+          (my/gtd-entry-unscheduled-next-p)))
+    ('exposed
+     (and (my/gtd-entry-exposed-p)
+          (my/gtd-entry-actionable-p)))
+    (_ nil)))
+
+(defun my/gtd-skip-non-block-entry (block)
+  "Skip current entry unless it belongs to dashboard BLOCK."
+  (unless (my/gtd-entry-matches-block-p block)
     (my/gtd-skip-current-entry)))
 
 (defun my/gtd-dashboard-header (title scope)
   "Return dashboard block header for TITLE under SCOPE."
   (format "%s [%s]" title (my/gtd-dashboard-scope-label scope)))
 
+(defun my/gtd-dashboard-agenda-block ()
+  "Return the shared agenda block used by dashboard commands."
+  '(agenda ""
+           ((org-agenda-span 1)
+            (org-agenda-entry-types '(:timestamp))
+            (org-agenda-skip-timestamp-if-done t)
+            (org-agenda-overriding-header "Agenda"))))
+
+(defun my/gtd-dashboard-alltodo-block (header block)
+  "Return an `alltodo' agenda block with HEADER for BLOCK."
+  `(alltodo ""
+            ((org-agenda-overriding-header ,header)
+             (org-agenda-skip-function
+              ,(lambda () (my/gtd-skip-non-block-entry block))))))
+
+(defun my/gtd-dashboard-next-block (header block)
+  "Return a `todo NEXT' agenda block with HEADER for BLOCK."
+  `(todo "NEXT"
+         ((org-agenda-overriding-header ,header)
+          (org-agenda-skip-function
+           ,(lambda () (my/gtd-skip-non-block-entry block))))))
+
 (defun my/gtd-dashboard-command (key scope)
   "Build custom agenda command KEY for dashboard SCOPE."
   `(,key ,(format "GTD Dashboard (%s)" (my/gtd-dashboard-scope-label scope))
-         ((agenda ""
-                  ((org-agenda-span 1)
-                   (org-agenda-entry-types '(:timestamp))
-                   (org-agenda-skip-timestamp-if-done t)
-                   (org-agenda-overriding-header "Agenda")))
-          (alltodo ""
-                   ((org-agenda-overriding-header
-                     ,(my/gtd-dashboard-header "Planned" scope))
-                    (org-agenda-skip-function
-                     ,(lambda () (my/gtd-skip-non-planned-entry scope)))))
-          (todo "NEXT"
-                ((org-agenda-overriding-header
-                  ,(my/gtd-dashboard-header "Next" scope))
-                 (org-agenda-skip-function
-                  ,(lambda () (my/gtd-skip-scheduled-next scope))))))
+         ,(pcase scope
+            ('work
+             (list
+              (my/gtd-dashboard-agenda-block)
+              (my/gtd-dashboard-alltodo-block
+               (my/gtd-dashboard-header "Planned" scope)
+               'planned-work)
+              (my/gtd-dashboard-next-block
+               (my/gtd-dashboard-header "Focus" scope)
+               'focus)
+              (my/gtd-dashboard-alltodo-block
+               (my/gtd-dashboard-header "Platform" scope)
+               'platform)))
+            ('non-work
+             (list
+              (my/gtd-dashboard-agenda-block)
+              (my/gtd-dashboard-alltodo-block
+               (my/gtd-dashboard-header "Planned" scope)
+               'planned-non-work)
+              (my/gtd-dashboard-next-block
+               (my/gtd-dashboard-header "Next" scope)
+               'ordinary-non-work)
+              (my/gtd-dashboard-alltodo-block
+               (my/gtd-dashboard-header "Exposed" scope)
+               'exposed)))
+            (_
+             (list
+              (my/gtd-dashboard-agenda-block)
+              `(alltodo ""
+                        ((org-agenda-overriding-header
+                          ,(my/gtd-dashboard-header "Planned" scope))
+                         (org-agenda-skip-function
+                          ,(lambda () (my/gtd-skip-non-planned-entry 'all)))))
+              `(todo "NEXT"
+                     ((org-agenda-overriding-header
+                       ,(my/gtd-dashboard-header "Next" scope))
+                      (org-agenda-skip-function
+                       ,(lambda () (my/gtd-skip-scheduled-next 'all))))))))
          ((org-agenda-buffer-name ,(my/gtd-dashboard-buffer-name scope))
           (org-agenda-compact-blocks t))))
 
@@ -113,9 +218,9 @@
 
 (setq org-agenda-custom-commands
       (append
-       (list (my/gtd-dashboard-command "g" 'all)
-             (my/gtd-dashboard-command "W" 'work)
-             (my/gtd-dashboard-command "R" 'non-work))
+       (list (my/gtd-dashboard-command "g" 'work)
+             (my/gtd-dashboard-command "r" 'non-work)
+             (my/gtd-dashboard-command "G" 'all))
        '(("p" "Projects"
           tags "+PROJECT"
           ((org-agenda-overriding-header "Projects")))
