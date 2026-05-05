@@ -15,12 +15,22 @@ return {
       opts.completion = opts.completion or {}
       opts.completion.menu = opts.completion.menu or {}
       opts.completion.documentation = opts.completion.documentation or {}
+      opts.completion.ghost_text = opts.completion.ghost_text or {}
       opts.completion.menu.auto_show = function(ctx)
         local bufnr = ctx and ctx.bufnr or vim.api.nvim_get_current_buf()
         local ft = vim.bo[bufnr].filetype
         return not writing_fts[ft]
       end
       opts.completion.documentation.auto_show = false
+      opts.completion.ghost_text.enabled = function()
+        return not writing_fts[vim.bo.filetype]
+      end
+
+      opts.sources = opts.sources or {}
+      opts.sources.per_filetype = opts.sources.per_filetype or {}
+      for ft in pairs(writing_fts) do
+        opts.sources.per_filetype[ft] = { "path", "snippets" }
+      end
 
       opts.cmdline = opts.cmdline or {}
       opts.cmdline.enabled = true
