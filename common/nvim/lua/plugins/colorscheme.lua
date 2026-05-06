@@ -24,7 +24,13 @@ return {
         }
 
         local hl = {
+          Cursor = { fg = c.base, bg = c.red },
+          CursorIM = { fg = c.base, bg = c.red },
+          CursorInsert = { fg = c.base, bg = c.red },
+          CursorReplace = { fg = c.base, bg = c.maroon },
+          lCursor = { fg = c.base, bg = c.red },
           markdownHeadingDelimiter = { fg = c.overlay1, bold = true },
+          TermCursor = { fg = c.base, bg = c.red },
         }
 
         for level, color in pairs(levels) do

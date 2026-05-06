@@ -8,8 +8,8 @@ config.color_scheme = "One Dark (Gogh)"
 config.colors = {
   foreground = "#d7dae0",
   background = "#282c34",
-  cursor_bg = "#d7dae0",
-  cursor_fg = "#282c34",
+  cursor_bg = "#d20f39",
+  cursor_fg = "#eff1f5",
 }
 config.font = wezterm.font_with_fallback({
   "Sarasa Mono SC",

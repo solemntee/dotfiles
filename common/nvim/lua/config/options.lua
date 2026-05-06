@@ -3,6 +3,7 @@
 -- Add any additional options here
 
 vim.opt.autoread = true
+vim.opt.guicursor = "n-v-c:block-Cursor/lCursor,i-ci-ve:ver25-CursorInsert/lCursor,r-cr:hor20-CursorReplace/lCursor,o:hor50-Cursor/lCursor"
 
 local is_remote = vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil
 
